@@ -1,0 +1,19 @@
+{
+  "name": "jogo-gosma",
+  "version": "1.0.0",
+  "description": "Teste de Phaser.js",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo test",
+    "start": "nodejs index.js"
+  },
+  "keywords": [
+    "gamedev"
+  ],
+  "author": "Guilherme Braga (Jamal)",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.17.1",
+    "phaser": "^3.52.0"
+  }
+}
