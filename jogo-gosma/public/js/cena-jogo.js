@@ -8,7 +8,9 @@ export default class CenaJogo extends Phaser.Scene{
 
    }
    create(){
-       this.add.image(0 , 0 , 'forest');
+      const larguraJogo = this.sys.canvas.width;
+      const alturaJogo  = this.sys.canvas.height;
+       this.add.image(larguraJogo/2 , alturaJogo/2 , 'forest');
    }
    update(){
 
