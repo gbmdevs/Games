@@ -7,6 +7,15 @@ const config = {
     width: 400,
     height: 240,
     parent: 'jogo-slime-floresta',
+    physics: {
+        default: 'arcade',
+        arcade: {
+            gravity:{
+                y: 100                    
+            },
+            debug: true
+        }
+    },
     scene: [
         CenaCarregamento,
         CenaJogo
