@@ -18,6 +18,11 @@ Game.create = function(){
     for(var i = 0 ; i < map.layers.length; i++ ){
         layer = map.createLayer(i);
     }
-    layer.inputEnabled = true; // Allows clicking on the map
-    ClientRect.askNewPlayer();
+    layer.inputEnabled = true; // Allows clicking on the map 
+    Client.askNewPlayer();
 };
+
+
+Game.addNewPlayer = (id, x, y) =>{
+   Game.playerMap[id] = game.add.sprite(x,y,'sprite');
+}
