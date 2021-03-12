@@ -1,0 +1,23 @@
+{
+  "name": "mmo-rpg-phaser-legend",
+  "version": "1.0.0",
+  "description": "MMO RPG Online baseado em nodejs e phaser.js",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo test",
+    "start": "nodemon index.js"
+  },
+  "keywords": [
+    "RPG",
+    "MMO",
+    "Phaser.js"
+  ],
+  "author": "Guilherme Braga (Jamal)",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.17.1",
+    "nodemon": "^2.0.7",
+    "phaser": "^3.53.1",
+    "socket.io": "^4.0.0"
+  }
+}
