@@ -6,6 +6,8 @@ const io  = require('socket.io')(server);
 
 app.use(express.static('public'));
 
+
+// Arquivos Utilizados no fonte.
 app.use('/js', express.static(__dirname + '/js')); 
 
 app.get('/', (req,res) => {
@@ -13,6 +15,7 @@ app.get('/', (req,res) => {
 });
 
 //Executar o servidor
-app.listen(8080, () => {
+server.listen(8080, () => {
      console.log("Servidor rodando na porta localhost:8080");
+     console.log(__dirname);
 });
