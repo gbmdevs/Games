@@ -1,3 +1,4 @@
+"use srtict"
 export default class MundoCena extends  Phaser.Scene{
     constructor(){
         super({
@@ -13,29 +14,17 @@ export default class MundoCena extends  Phaser.Scene{
       // Area de Jogadores - Grupo 
       this.otherPlayers = this.physics.add.group();
 
-      //Variavel para criar o mapa
-      var map = this.make.tilemap({
-         key: 'map'
-      });
-
-      // first parameter is the name of the tilemap in tiled
-      var tiles = map.addTilesetImage('spritesheet', 'tiles', 16, 16, 1, 2);
-
-      // Criar as Camadas de Gramas e Obstaculos
-      var grass = map.createStaticLayer('Grass', tiles, 0, 0);
-      var obstacles = map.createStaticLayer('Obstacles', tiles, 0, 0);
-
-      // Criar Colisão nos obstaculos citados
-      obstacles.setCollisionByExclusion([-1]);
+      // Criar o Mapa
+      this.createMap();
  
-      // Não deixar andar nas arvores
-      this.physics.add.collider(this.player, obstacles);
-
       // Entrada de Comando do usuario
       this.cursors = this.input.keyboard.createCursorKeys();
        
-      //
-      this.createPlayer();
+      // Criando Jogador
+      //this.createPlayer();
+
+      // Atualizar a Camera
+      //this.updateCamera();
 
 
       //  animation with key 'left', we don't need left and right as we will use one and flip the sprite
@@ -76,48 +65,65 @@ export default class MundoCena extends  Phaser.Scene{
         repeat: -1
       });
       
-/*
+
       // Listagem de eventos Socket WEB
       this.socket.on('currentPlayers', function(players) {
         Object.keys(players).forEach(function(id) {
           if(players[id].playerId === this.socket.id){
-             console.log('É igual');
+             console.log('Player = ' + Object.values(players[id])); 
+             this.createPlayer(players[id]);
           }else{
-             console.log('Não É igual');            
+             this.addOtherPlayers(players[id]);      
           }
-        })
-      }); */
+        }.bind(this));
+      }.bind(this)); 
 
       // Inserindo novo Jogador
       this.socket.on('newPlayer', function(playerInfo) {
          this.addOtherPlayers(playerInfo);
-      });
+      }.bind(this));
 
-
+     
       // Desconectar os Jogadores que 
       this.socket.on('disconnectPlayer', function(playerId){
-         console.log('Jogador Saiu' , playerId);
-      });
-
+        this.otherPlayers.getChildren().forEach(function (player) {
+          if (playerId === player.playerId) {
+            player.destroy();
+          }
+      }.bind(this));  
+     }.bind(this));
+     
+      
+      // Recebe do Servidor quem se moveu
+      this.socket.on('playerMoved', function(playerInfo){
+         this.otherPlayers.getChildren().forEach(function (player){
+            if(playerInfo.playerId === player.playerId){
+              player.flipX = playerInfo.flipX;
+              player.setPosition(playerInfo.x, playerInfo.y);
+            }
+         }.bind(this));
+      }.bind(this));
+      
     }
 
     update(){
-     
+     if(this.container){         
+       
       // Estudar o que é isso
-      this.player.body.setVelocity(0);  
+      this.container.body.setVelocity(0);  
 
       // Movimento na Vertical
       if (this.cursors.up.isDown) {
-        this.player.body.setVelocityY(-80);
+        this.container.body.setVelocityY(-80);
       }else if (this.cursors.down.isDown) {
-        this.player.body.setVelocityY(80);
+        this.container.body.setVelocityY(80);
       }
 
       //Movimento Horizontal
       if(this.cursors.right.isDown){
-        this.player.body.setVelocityX(80)
+        this.container.body.setVelocityX(80)
       }else if(this.cursors.left.isDown){
-        this.player.body.setVelocityX(-80);
+        this.container.body.setVelocityX(-80);
       }
 
      // Atualizar a animação do personagem
@@ -133,22 +139,66 @@ export default class MundoCena extends  Phaser.Scene{
        this.player.anims.play('down', true);  
      }else{
        this.player.anims.stop();
+      }       
+     
+     
+      // Atualiza a posição do jogador
+      var x = this.container.x;
+      var y = this.container.y;
+      var flipX = this.player.flipX;
+      if (this.container.oldPosition && (x !== this.container.oldPosition.x || y !== this.container.oldPosition.y || flipX !== this.container.oldPosition.flipX)) {
+        this.socket.emit('playerMovement', { x, y, flipX });
+      }
+      // save old position data
+      this.container.oldPosition = {
+        x: this.container.x,
+        y: this.container.y,
+        flipX: this.player.flipX
+      }; 
      } 
   }
+  
+
 
 // Area das Funções externas do Jogo
-
-addOtherPlayers(playerInfo){
-   console.log(playerInfo);
-   const otherPlayer = this.add.sprite(playerInf.x, playerInfo.y , 'player' , 9);
+addOtherPlayers(playerInfo){ 
+   const otherPlayer = this.add.sprite(playerInfo.x, playerInfo.y , 'player' , 9);
+   otherPlayer.setTint(Math.random() * 0xffffff)
+   otherPlayer.playerId = playerInfo.playerId;
+   this.otherPlayers.add(otherPlayer);
 
 }
 
-createPlayer(){
+createMap(){
+     //Variavel para criar o mapa
+     this.map = this.make.tilemap({
+      key: 'map'
+     });
+
+    // first parameter is the name of the tilemap in tiled
+    var tiles = this.map.addTilesetImage('spritesheet', 'tiles', 16, 16, 1, 2);
+    // Criar as Camadas de Gramas e Obstaculos
+    this.map.createStaticLayer('Grass', tiles, 0, 0);    
+    var obstacles = this.map.createStaticLayer('Obstacles', tiles, 0, 0);
+
+    // Não sair do Mapa
+    this.physics.world.bounds.width  = this.map.widthInPixels;
+    this.physics.world.bounds.height = this.map.heightInPixels; 
+
+    // Criar Colisão nos obstaculos citados
+    obstacles.setCollisionByExclusion([-1]);
+
+    // Não deixar andar nas arvores
+    //this.physics.add.collider(this.player, obstacles);
+}
+
+createPlayer(playerInfo){
+  
+  console.log(playerInfo + ' Criando');
   this.player = this.add.sprite(0, 0, 'player', 6);
 
   // Container Estudar isso
-  this.container = this.add.container(500, 500);
+  this.container = this.add.container(playerInfo.x, playerInfo.y);
   this.container.setSize(16,16);
   this.physics.world.enable(this.container);
   this.container.add(this.player);
@@ -158,15 +208,13 @@ createPlayer(){
 
   // Não deixar Sair do Mapa
   this.container.body.setCollideWorldBounds(true);
-
-
-
 }
 
 updateCamera(){
+      console.log('entrou camera')
       // limit camera to map
-      this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
-      this.cameras.main.startFollow(this.player);
+      this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
+      this.cameras.main.startFollow(this.container);
       this.cameras.main.roundPixels = true; // avoid tile bleed
 }
 

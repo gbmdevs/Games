@@ -43,6 +43,14 @@ io.on('connection' , function(socket) {
       io.emit('disconnectPlayer', socket.id);
    });
 
+   // Quando um jogador se move , atualizar a data do jogo
+   socket.on('playerMovement', function(movementData){
+      players[socket.id].x = movementData.x;
+      players[socket.id].y = movementData.y;
+      players[socket.id].flipX = movementData.flipX;
+      socket.broadcast.emit('playerMoved', players[socket.id]);
+   });
+
 });
 
 //Executar o servidor
